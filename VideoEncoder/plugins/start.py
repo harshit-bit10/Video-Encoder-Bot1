@@ -25,7 +25,8 @@ from time import time
 from psutil import (boot_time, cpu_count, cpu_percent, disk_usage,
                     net_io_counters, swap_memory, virtual_memory)
 from pyrogram import Client, filters
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.errors import ChatAdminRequired, UserNotParticipant, InviteLinkExpired
 
 from .. import botStartTime, download_dir, encode_dir
 from ..utils.database.access_db import db
@@ -221,6 +222,133 @@ async def font_message(app, message):
     finally:
         osexecl(executable, executable, "-m", "VideoEncoder")
 
+# Replace with the Telegram User ID of the bot owner
+OWNER_ID = 6066102279  # Replace this with your Telegram User ID
+
+# Global variables to store channel IDs
+channel_1 = None
+channel_2 = None
+invite_link_1 = None
+invite_link_2 = None
+
+# Initialize the bot
+app = Client("force_subscribe_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+# Helper function to check if the user is the owner
+def is_owner(user_id):
+    return user_id == OWNER_ID
+
+@app.on_message(filters.command("fsub1"))
+async def set_fsub1(client, message):
+    global channel_1, invite_link_1
+    if not is_owner(message.from_user.id):
+        await message.reply("🚫 You are not my master to access this command!")
+        return
+
+    if len(message.command) != 2:
+        await message.reply("Usage: `/fsub1 -100{channel_id}`", parse_mode="markdown")
+        return
+
+    channel_1 = message.command[1]
+    try:
+        chat_member = await client.get_chat_member(channel_1, "me")
+        if chat_member.status != "administrator":
+            await message.reply("❌ Bot is not an admin in this channel. Please make the bot an admin and try again.")
+            channel_1 = None
+            return
+        # Generate a new invite link
+        invite_link_1 = await client.create_chat_invite_link(channel_1)
+    except ChatAdminRequired:
+        await message.reply("❌ Invalid Channel or Bot is not in the channel. Please check and try again.")
+        channel_1 = None
+        return
+
+    await message.reply(f"✅ Channel 1 has been set to `{channel_1}`.")
+
+@app.on_message(filters.command("fsub2"))
+async def set_fsub2(client, message):
+    global channel_2, invite_link_2
+    if not is_owner(message.from_user.id):
+        await message.reply("🚫 You are not my master to access this command!")
+        return
+
+    if len(message.command) != 2:
+        await message.reply("Usage: `/fsub2 -100{channel_id}`", parse_mode="markdown")
+        return
+
+    channel_2 = message.command[1]
+    try:
+        chat_member = await client.get_chat_member(channel_2, "me")
+        if chat_member.status != "administrator":
+            await message.reply("❌ Bot is not an admin in this channel. Please make the bot an admin and try again.")
+            channel_2 = None
+            return
+        # Generate a new invite link
+        invite_link_2 = await client.create_chat_invite_link(channel_2)
+    except ChatAdminRequired:
+        await message.reply("❌ Invalid Channel or Bot is not in the channel. Please check and try again.")
+        channel_2 = None
+        return
+
+    await message.reply(f"✅ Channel 2 has been set to `{channel_2}`.")
+
+@app.on_message(filters.command("refresh_link"))
+async def refresh_links(client, message):
+    global invite_link_1, invite_link_2
+    if not is_owner(message.from_user.id):
+        await message.reply("🚫 You are not my master to access this command!")
+        return
+
+    if not channel_1 and not channel_2:
+        await message.reply("❌ No channels are set yet. Please use `/fsub1` and `/fsub2` first.")
+        return
+
+    try:
+        if channel_1:
+            invite_link_1 = await client.create_chat_invite_link(channel_1)
+        if channel_2:
+            invite_link_2 = await client.create_chat_invite_link(channel_2)
+        await message.reply("✅ Invite links have been refreshed successfully!")
+    except InviteLinkExpired:
+        await message.reply("❌ Failed to refresh invite links. Please check the channel settings.")
+
+@app.on_message(filters.private)
+async def force_subscribe(client, message):
+    global channel_1, channel_2, invite_link_1, invite_link_2
+
+    # Check if either channel_1 or channel_2 is set
+    if not channel_1 and not channel_2:
+        await message.reply("❌ Force subscription is not configured. Please contact the bot owner.")
+        return
+
+    # Inline buttons for channels
+    buttons = []
+    if channel_1:
+        buttons.append([InlineKeyboardButton("Join Channel V1", url=invite_link_1.invite_link)])
+    if channel_2:
+        buttons.append([InlineKeyboardButton("Join Channel V2", url=invite_link_2.invite_link)])
+
+    user_name = message.from_user.first_name or "User"
+    user_profile = f"https://t.me/{message.from_user.username}" if message.from_user.username else f"https://t.me/{message.from_user.id}"
+
+    try:
+        # Check if user is a member of both channels
+        if channel_1:
+            await client.get_chat_member(channel_1, message.from_user.id)
+        if channel_2:
+            await client.get_chat_member(channel_2, message.from_user.id)
+        # User is subscribed, allow access
+        await message.reply("🎉 Welcome! You can now use the bot's features!\n<b>Bot By @SupremeYoriichi</b>")
+    except UserNotParticipant:
+        # User is not subscribed to one or more channels
+        await message.reply_photo(
+            "https://telegra.ph/Shinobuv3-01-28",  # Banner image
+            caption=(
+                f"Hey {user_name} [{user_profile}]\n\n"
+                "Please Join Both Of Our Channels To Access Me And My Features."
+            ),
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
 
 @Client.on_message(filters.command('update'))
 async def update_message(app, message):
@@ -235,3 +363,5 @@ async def update_message(app, message):
         await app.stop()
     finally:
         srun([f"bash run.sh"], shell=True)
+
+OWNER_ID = 6066102279  # Set as an integer
