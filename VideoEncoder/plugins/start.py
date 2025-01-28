@@ -62,6 +62,7 @@ async def help_message(app, message):
 - Autodetect Telegram File.
 - /ddl - encode through DDL
 - /batch - encode in batch
+- /about - about our bot 
 - /queue - check queue
 - /settings - settings
 - /vset - view settings
@@ -87,6 +88,22 @@ For Owner:
 Supports: <a href='https://telegra.ph/SharkToonsIndia-Video---Encoder-Bot-Supports-01-28'>click here</a>"""
     await message.reply(text=msg, disable_web_page_preview=True, reply_markup=start_but)
 
+@app.on_message(filters.command("about"))
+async def about(client, message):
+    # Send the image first
+    await client.send_photo(
+        chat_id=message.chat.id,
+        photo="https://telegra.ph/file/your_image_file_id_or_url.jpg",  # Replace with your image URL
+        caption=(
+            "<b><i>About Us..\n\n"
+            "For more information, visit: https://telegra.ph/Shvb2-01-27\n\n"
+            "‣ Made for : V-1 {t.me/@SharkToonsIndia} And V-2 {t.me/@SharkToonsBackup}\n"
+            "‣ Owned by : @SupremeYoriichi\n"
+            "‣ Maintained by : @SupremeYoriichi\n"
+            "‣ Developed by : Team WZ\n\n"
+            "That's It !! </i></b>"
+        )
+    )
 
 @Client.on_message(filters.command('stats'))
 async def show_status_count(_, event: Message):
