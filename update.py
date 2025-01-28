@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from subprocess import run as srun
+'''from subprocess import run as srun
 import logging
 from os import path as ospath
 
@@ -39,4 +39,4 @@ if UPSTREAM_REPO is not None:
     if update.returncode == 0:
         logging.info('Successfully updated with latest commit from UPSTREAM_REPO')
     else:
-        logging.error('Something went wrong while updating, check UPSTREAM_REPO if valid or not!')
+        logging.error('Something went wrong while updating, check UPSTREAM_REPO if valid or not!')'''
