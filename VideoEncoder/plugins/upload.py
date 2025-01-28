@@ -45,7 +45,7 @@ async def docupload(client, message):
     try:
         await upload_doc(message, reply, c_time, filename, file)
     except Exception as e:
-        await reply.edit('Error while uploading! {}'.format(e))
+        await reply.edit('Error while uploading!\n<b>Immediately contact Owner, Sir @SupremeYoriichi</b> {}'.format(e))
     else:
         await reply.delete()
 
@@ -90,7 +90,7 @@ async def driveupload(client, message):
         u = Uploader()
         await u.upload_to_drive(new_file, message, reply)
     except:
-        await reply.edit('Error while uploading!')
+        await reply.edit('Error while uploading!\n<b>Immediately contact Owner, Sir @SupremeYoriichi</b>')
     else:
         await reply.delete()
 
